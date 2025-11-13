@@ -1,24 +1,24 @@
-### ProDev Backend Engineering Program
-# Overview
+# ProDev Backend Engineering Program
+### Overview
 This repository documents my journey through the ProDev Backend Engineering program, a comprehensive training program focused on modern backend development practices and technologies. The program covers essential concepts, tools, and frameworks required to build scalable, maintainable, and production-ready backend systems.
 Throughout this program, I've gained hands-on experience with industry-standard technologies and best practices that power modern web applications and APIs.
 
-### Key Technologies Covered
-# Core Programming & Frameworks
+# Key Technologies Covered
+### Core Programming & Frameworks
 
 - Python: Advanced Python programming, object-oriented design, and Pythonic patterns
 - Django: Full-stack web framework for building robust web applications
 - Django REST Framework (DRF): Creating RESTful APIs with authentication, serialization, and permissions
 - GraphQL: Building flexible APIs with GraphQL using Graphene-Django
 
-# DevOps & Deployment
+### DevOps & Deployment
 
 * Docker: Containerization of applications for consistent development and deployment
 * Docker Compose: Multi-container application orchestration
 * CI/CD: Continuous Integration and Continuous Deployment pipelines
 * GitHub Actions: Automated testing and deployment workflows
 
-# Additional Tools & Technologies
+### Additional Tools & Technologies
 
 1. PostgreSQL/MySQL: Relational database management
 2. Redis: In-memory data structure store for caching
@@ -26,8 +26,8 @@ Throughout this program, I've gained hands-on experience with industry-standard 
 4. Git: Version control and collaborative development
 
 
-### Important Backend Development Concepts
-# Database Design
+# Important Backend Development Concepts
+### Database Design
 
 * Relational Database Modeling: Designing normalized database schemas
 * ORMs (Object-Relational Mapping): Using Django ORM for database interactions
@@ -35,7 +35,7 @@ Throughout this program, I've gained hands-on experience with industry-standard 
 * Query Optimization: Efficient querying with select_related and prefetch_related
 * Indexing Strategies: Improving query performance through proper indexing
 
-# Asynchronous Programming
+### Asynchronous Programming
 
 1. Task Queues: Implementing background jobs with Celery
 2. Message Brokers: Using RabbitMQ/Redis for task distribution
@@ -43,7 +43,7 @@ Throughout this program, I've gained hands-on experience with industry-standard 
 4. Web Sockets: Real-time communication patterns
 5. Event-Driven Architecture: Designing systems around events and message passing
 
-# Caching Strategies
+### Caching Strategies
 
 - Cache-Aside Pattern: Loading data into cache on demand
 - Redis Caching: Implementing distributed caching with Redis
@@ -51,7 +51,7 @@ Throughout this program, I've gained hands-on experience with industry-standard 
 - Template Fragment Caching: Optimizing Django template rendering
 - Cache Invalidation: Strategies for maintaining cache consistency
 
-# API Development
+### API Development
 
 * RESTful Principles: Designing resource-oriented APIs
 * API Versioning: Managing API changes over time
@@ -59,7 +59,7 @@ Throughout this program, I've gained hands-on experience with industry-standard 
 * Rate Limiting: Protecting APIs from abuse
 * API Documentation: Using Swagger/OpenAPI for documentation
 
-# Testing & Quality Assurance
+### Testing & Quality Assurance
 
 1. Unit Testing: Testing individual components with pytest/unittest
 2. Integration Testing: Testing component interactions
@@ -68,7 +68,7 @@ Throughout this program, I've gained hands-on experience with industry-standard 
 5. Mocking & Fixtures: Creating test data and mocking dependencies
 
 
-### Challenges Faced and Solutions Implemented
+# Challenges Faced and Solutions Implemented
 1. Challenge 1: Database Performance Issues
 * Problem: Slow API response times due to N+1 query problems
 - Solution:
