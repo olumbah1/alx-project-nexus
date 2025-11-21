@@ -48,6 +48,17 @@ class SignUpSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"password": list(exc.messages)})
 
         return attrs
+    
+    def create(self, validated_data):
+        # remove confirm_password before passing to model
+        validated_data.pop('confirm_password')
+
+        password = validated_data.pop('password')
+
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class LoginSerializer(serializers.Serializer):
@@ -142,10 +153,13 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['email'] = user.email
         return token
-
+    
     def validate(self, attrs):
         data = super().validate(attrs)
-        data["user"] = UserSerializer(self.user).data
+
+        if not self.user.is_verified:
+            raise serializers.ValidationError("Email is not verified.")
+
         return data
 
 
