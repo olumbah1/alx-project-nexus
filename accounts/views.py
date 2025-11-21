@@ -106,12 +106,10 @@ class ResetPasswordAPIView(generics.GenericAPIView):
         token = serializer.validated_data['token']
         new_password = serializer.validated_data['new_password']
 
-        # Decode UID safely for UUID fields
+        # Lookup user by UUID string directly
         try:
-            uid_bytes = urlsafe_base64_decode(uid)
-            uid_str = uid_bytes.decode()
-            user = User.objects.get(id=uid_str)   # UUID lookup MUST be string UUID
-        except Exception:
+            user = User.objects.get(id=uid)
+        except User.DoesNotExist:
             return Response({'detail': 'Invalid uid/token.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate token
@@ -122,7 +120,7 @@ class ResetPasswordAPIView(generics.GenericAPIView):
         user.set_password(new_password)
         user.save()
 
-        # OPTIONAL: Blacklist old refresh tokens
+        # Optional: blacklist old refresh tokens
         try:
             for outstanding in OutstandingToken.objects.filter(user=user):
                 BlacklistedToken.objects.get_or_create(token=outstanding)

@@ -11,7 +11,7 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/logout/', LogoutAPIView.as_view(), name='auth-logout'),
     path('auth/forgot-password/', ForgotPasswordAPIView.as_view(), name='auth-forgot-password'),
-    path('resend-verification/', ResendVerificationAPIView.as_view(), name='resend-verification'),
+    path('auth/resend-verification/', ResendVerificationAPIView.as_view(), name='resend-verification'),
 
     path('auth/reset-password/', ResetPasswordAPIView.as_view(), name='auth-reset-password'),
     path('auth/verify/<uuid:uid>/<str:token>/', VerifyEmailAPIView.as_view(), name='verify-email'),
