@@ -24,11 +24,16 @@ token_generator = PasswordResetTokenGenerator()
 class SignupAPIView(generics.CreateAPIView):
     serializer_class = SignUpSerializer
     permission_classes = [permissions.AllowAny]
-    
-    def perform_create(self, serializer):
+
+    def post(self, request, *args, **kwargs):
+        serializer = SignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)  
         user = serializer.save()
-        from .utils import send_verification_email
         send_verification_email(user)
+        return Response({
+            "detail": "User created successfully",
+            "user": SignUpSerializer(user).data
+        }, status=201)
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
