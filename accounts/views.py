@@ -12,9 +12,8 @@ from .serializers import (
     SignUpSerializer, ForgotPasswordSerializer, ResetPasswordSerializer, 
     LogoutSerializer, ProfileSerializer, ChangePasswordSerializer, MyTokenObtainPairSerializer
 )
-from .utils import send_password_reset_email
+from .utils import send_password_reset_email, send_verification_email 
 from rest_framework.views import APIView
-from .utils import send_verification_email 
 
 User = get_user_model()
 

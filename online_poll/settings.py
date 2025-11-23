@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'accounts',
     'voteapp',
+    'notifications',
+    'django_filters',
+    'rest_framework_simplejwt.token_blacklist', 
 ]
 
 MIDDLEWARE = [
