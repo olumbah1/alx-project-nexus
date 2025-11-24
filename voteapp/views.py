@@ -41,3 +41,51 @@ class PollResultsView(APIView):
         except Poll.DoesNotExist:
             return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
         return Response(poll.get_results())
+    
+
+class CategoryListCreateView(generics.ListCreateAPIView):
+    """
+    GET: List all categories
+    POST: Create a new category
+    """
+    queryset = Category.objects.all().order_by("-created_at")
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET: Retrieve one category
+    PUT/PATCH: Update category
+    DELETE: Delete category
+    """
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class CampaignListCreateView(generics.ListCreateAPIView):
+    """
+    GET: List all campaigns
+    POST: Create a new campaign
+    """
+    queryset = Campaign.objects.all().order_by("-created_at")
+    serializer_class = CampaignSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class CampaignDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET: Retrieve one campaign
+    PUT/PATCH: Update campaign
+    DELETE: Delete campaign
+    """
+    queryset = Campaign.objects.all()
+    serializer_class = CampaignSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
