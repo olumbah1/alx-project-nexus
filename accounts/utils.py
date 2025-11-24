@@ -1,30 +1,25 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import PasswordResetTokenGenerator, default_token_generator
-from django.urls import reverse
+from .tasks import send_verification_email_task, send_password_reset_email_task
 
 token_generator = PasswordResetTokenGenerator()
 
 
 def send_verification_email(user):
     """
-    Send email verification link to a user.
-    Works with UUID primary key.
+    Trigger async task to send email verification link.
     """
-    uid = str(user.id)  # UUID as string
-    token = default_token_generator.make_token(user)
+    # Call Celery task asynchronously with user ID (UUID as string)
+    send_verification_email_task.delay(str(user.id))
 
-    verify_url = f"http://localhost:8000/api/auth/verify/{uid}/{token}/"
 
-    message = f"Click the link to verify your email: {verify_url}"
-
-    send_mail(
-        "Verify your email",
-        message,
-        "noreply@yourapp.com",
-        [user.email],
-        fail_silently=False,
-    )
+def send_password_reset_email(user):
+    """
+    Trigger async task to send password reset email.
+    """
+    # Call Celery task asynchronously with user ID (UUID as string)
+    send_password_reset_email_task.delay(str(user.id))
 
 
 def make_password_reset_email(user):
@@ -32,7 +27,7 @@ def make_password_reset_email(user):
     Build uid and token for reset link and return (uid, token, url)
     Works with UUID primary key.
     """
-    uid = str(user.id)  # UUID as string
+    uid = str(user.id)
     token = token_generator.make_token(user)
     frontend_base = getattr(settings, 'FRONTEND_PASSWORD_RESET_URL', None)
     if frontend_base:
@@ -40,20 +35,3 @@ def make_password_reset_email(user):
     else:
         reset_url = f"uid={uid}&token={token}"
     return uid, token, reset_url
-
-
-def send_password_reset_email(user):
-    """
-    Send password reset email using UUID and token
-    """
-    uid, token, reset_url = make_password_reset_email(user)
-    subject = "Password reset request"
-    message = (
-        f"Hello {user.email},\n\n"
-        "You (or someone else) requested a password reset. "
-        "If you did, click the link below to reset your password:\n\n"
-        f"{reset_url}\n\n"
-        "If you didn't request this, you can safely ignore this email.\n\n"
-        "Regards,\nYour Team"
-    )
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)

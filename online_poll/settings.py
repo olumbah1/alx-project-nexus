@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-
+from datetime import timedelta
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,9 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-DEBUG=os.getenv('DEBUG')
-SECRET_KEY = os.getenv('SECRET_KEY')
-ALLOWED_HOSTS =os.getenv('ALLOWED_HOSTS').split(',')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-in-production')
+# Convert string to boolean manually
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't', 'yes')
+# Split the string to get list
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,11 +44,14 @@ INSTALLED_APPS = [
     'voteapp',
     'notifications',
     'django_filters',
-    'rest_framework_simplejwt.token_blacklist', 
+    'rest_framework_simplejwt.token_blacklist',
+    'django_celery_results',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -134,7 +140,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -158,15 +166,49 @@ REST_FRAMEWORK = {
 }
 
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "noreply@gmail.com"
 
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = "smtp.gmail.com"
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = "your-email@gmail.com"
-# EMAIL_HOST_PASSWORD = "your-app-password"
+# # EMAIL CONFIGURATION
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', default='noreply@yourapp.com')
 
-FRONTEND_PASSWORD_RESET_URL = 'https://your-frontend.example.com/reset-password'
+FRONTEND_PASSWORD_RESET_URL = os.getenv('FRONTEND_PASSWORD_RESET_URL', 'http://localhost:3000/reset-password')
+
+# CELERY CONFIGURATION
+CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+
+
+
+# Production Settings
+
+# # Use environment variables
+# CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'amqp://guest:guest@localhost:5672//')
+# CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'django-db')
+
+# # Security
+# CELERY_TASK_ALWAYS_EAGER = False  # Set to True only for testing
+# CELERY_TASK_EAGER_PROPAGATES = True  # Propagate exceptions in eager mode
+
+# # Performance
+# CELERY_WORKER_PREFETCH_MULTIPLIER = 4
+# CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000

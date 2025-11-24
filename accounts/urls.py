@@ -21,3 +21,10 @@ urlpatterns = [
 
 ]
 
+from .views import test_celery_emails
+
+urlpatterns = [
+    # ... your other URLs
+    path('test-celery/', test_celery_emails, name='test_celery'),
+]
+

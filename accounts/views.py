@@ -14,6 +14,8 @@ from .serializers import (
 )
 from .utils import send_password_reset_email, send_verification_email 
 from rest_framework.views import APIView
+from .tasks import send_verification_email_task, send_password_reset_email_task
+
 
 User = get_user_model()
 
@@ -29,9 +31,12 @@ class SignupAPIView(generics.CreateAPIView):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)  
         user = serializer.save()
-        send_verification_email(user)
+        
+        # Send verification email asynchronously
+        send_verification_email_task.delay(str(user.id))
+        
         return Response({
-            "detail": "User created successfully",
+            "detail": "User created successfully. Verification email sent.",
             "user": SignUpSerializer(user).data
         }, status=201)
 
@@ -70,16 +75,16 @@ class ForgotPasswordAPIView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
 
-        # Always return generic response to avoid user enumeration
         try:
             user = User.objects.get(email__iexact=email)
+            # Send password reset email asynchronously
+            send_password_reset_email_task.delay(str(user.id))
         except User.DoesNotExist:
-            # Return generic message even if user not found
-            return Response({'detail': 'If an account with that email exists, a password reset link has been sent.'}, status=status.HTTP_200_OK)
-
-        # send email (uses settings for email backend)
-        send_password_reset_email(user)
-        return Response({'detail': 'If an account with that email exists, a password reset link has been sent.'}, status=status.HTTP_200_OK)
+            pass  # Don't reveal if user exists
+            
+        return Response({
+            'detail': 'If an account with that email exists, a password reset link has been sent.'
+        }, status=status.HTTP_200_OK)
 
 
 class ResendVerificationAPIView(generics.GenericAPIView):
@@ -175,3 +180,32 @@ class VerifyEmailAPIView(APIView):
         user.is_verified = True
         user.save()
         return Response({'detail': 'Email verified successfully.'})
+    
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from .tasks import send_verification_email_task, send_password_reset_email_task
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def test_celery_emails(request):
+    """Test endpoint for Celery email tasks"""
+    
+    # Trigger email tasks
+    task1 = send_verification_email_task.delay(
+        'test@example.com',
+        'http://localhost:3000/verify/test123'
+    )
+    
+    task2 = send_password_reset_email_task.delay(
+        'test@example.com',
+        'http://localhost:3000/reset/test456'
+    )
+    
+    return Response({
+        'status': 'success',
+        'message': 'Email tasks triggered',
+        'verification_task_id': task1.id,
+        'reset_task_id': task2.id,
+    })
