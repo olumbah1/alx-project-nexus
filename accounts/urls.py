@@ -8,7 +8,7 @@ from .views import (SignupAPIView, MyTokenObtainPairView, LogoutAPIView,
 urlpatterns = [
     path('auth/signup/', SignupAPIView.as_view(), name='auth-signup'),
     path('auth/login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/logout/', LogoutAPIView.as_view(), name='auth-logout'),
     path('auth/forgot-password/', ForgotPasswordAPIView.as_view(), name='auth-forgot-password'),
     path('auth/resend-verification/', ResendVerificationAPIView.as_view(), name='resend-verification'),
@@ -18,13 +18,5 @@ urlpatterns = [
 
     path("profile/", ProfileView.as_view(), name="profile"),
     path("profile/change-password/", ChangePasswordView.as_view(), name="change-password"),
-
-]
-
-from .views import test_celery_emails
-
-urlpatterns = [
-    # ... your other URLs
-    path('test-celery/', test_celery_emails, name='test_celery'),
 ]
 

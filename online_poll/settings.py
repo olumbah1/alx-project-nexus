@@ -25,10 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-in-production')
-# Convert string to boolean manually
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't', 'yes')
-# Split the string to get list
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
 
 # Application definition
 
@@ -47,7 +46,10 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'django_celery_results',
     'django_celery_beat',
+    'corsheaders',
+    'drf_spectacular',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -62,7 +64,6 @@ MIDDLEWARE = [
 
 
 AUTH_USER_MODEL = "accounts.CustomUser"
-
 
 ROOT_URLCONF = 'online_poll.urls'
 
@@ -144,6 +145,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -163,6 +165,12 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
         'rest_framework.permissions.AllowAny',
     ],
+    
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    
+    'DEFAULT_SCHEMA_CLASS' : 
+        'drf_spectacular.openapi.AutoSchema',
 }
 
 
@@ -173,10 +181,19 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
+
+SPECTACULAR_SETTINGS = {
+    'TITLE' : 'Online_poll API',
+    'DESCRIPTION': 'API for online polling system backend',
+    'VERSION' : '1.0.0',
+}
+
+
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "noreply@gmail.com"
 
-# # EMAIL CONFIGURATION
+# # Email Configuration
+
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
@@ -187,7 +204,30 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', default='noreply@yourapp.co
 
 FRONTEND_PASSWORD_RESET_URL = os.getenv('FRONTEND_PASSWORD_RESET_URL', 'http://localhost:3000/reset-password')
 
-# CELERY CONFIGURATION
+
+# Cache Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'online_poll',
+        'TIMEOUT': 300,  # 5 minutes default
+    }
+}
+
+# Cache time settings
+CACHE_TTL = {
+    'polls_list': 60 * 5,  # 5 minutes
+    'poll_detail': 60 * 10,  # 10 minutes
+    'poll_results': 60 * 2,  # 2 minutes
+    'categories': 60 * 15,  # 15 minutes
+    'campaigns': 60 * 15,  # 15 minutes
+}
+
+# Celery Configuration
 CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 CELERY_RESULT_BACKEND = 'rpc://'
 CELERY_ACCEPT_CONTENT = ['json']
@@ -198,17 +238,24 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 
 
+# Celery Production Settings 
 
-# Production Settings
+# # Broker and Backend Configuration
+# CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'amqp://guest:guest@localhost:5672//')
+# CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'django-db')
 
-# # Use environment variables
-# CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'amqp://guest:guest@localhost:5672//')
-# CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'django-db')
-
-# # Security
-# CELERY_TASK_ALWAYS_EAGER = False  # Set to True only for testing
+# # Security Settings
+# CELERY_TASK_ALWAYS_EAGER = False  # Set to True only for testing (runs tasks synchronously)
 # CELERY_TASK_EAGER_PROPAGATES = True  # Propagate exceptions in eager mode
 
-# # Performance
-# CELERY_WORKER_PREFETCH_MULTIPLIER = 4
-# CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
+# # Performance Optimization
+# CELERY_WORKER_PREFETCH_MULTIPLIER = 4  # How many tasks a worker prefetches
+# CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000  # Restart worker after this many tasks (prevents memory leaks)
+
+# # Task Execution Settings
+# CELERY_TASK_ACKS_LATE = True  # Acknowledge task after execution (safer for task recovery)
+# CELERY_WORKER_SEND_TASK_EVENTS = True  # Enable task events for monitoring
+
+# # Additional Production Settings (optional but recommended)
+# CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True  # Retry connection on startup
+# CELERY_BROKER_CONNECTION_MAX_RETRIES = 10  # Max retries for broker connection
