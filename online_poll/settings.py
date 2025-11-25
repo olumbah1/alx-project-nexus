@@ -23,14 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-in-production')
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't', 'yes')
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -63,6 +61,173 @@ MIDDLEWARE = [
 ]
 
 
+# Create logs directory if it doesn't exist
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    
+    # Formatters
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {name} {module} {process:d} {thread:d} - {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'simple': {
+            'format': '[{levelname}] {asctime} - {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'json': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            'format': '%(asctime)s %(name)s %(levelname)s %(message)s',
+        },
+    },
+    
+    # Filters
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    
+    # Handlers
+    'handlers': {
+        # Console handler - for development
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+            'filters': ['require_debug_true'],
+        },
+        
+        # File handler - General application logs
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'django.log',
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        
+        # Error file handler - Only errors and critical
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'errors.log',
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        
+        # Celery logs
+        'celery_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'celery.log',
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        
+        # Database queries (for debugging)
+        'db_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'database.log',
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 3,
+            'formatter': 'verbose',
+            'filters': ['require_debug_true'],
+        },
+        
+        # Email admins on errors (production)
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'filters': ['require_debug_false'],
+            'formatter': 'verbose',
+        },
+    },
+    
+    # Loggers
+    'loggers': {
+        # Django core loggers
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        
+        # Django request logger
+        'django.request': {
+            'handlers': ['error_file', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        
+        # Django server logger
+        'django.server': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        
+        # Database queries
+        'django.db.backends': {
+            'handlers': ['db_file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        
+        # Celery loggers
+        'celery': {
+            'handlers': ['celery_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        
+        'celery.task': {
+            'handlers': ['celery_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        
+        # Your app loggers
+        'accounts': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        
+        'voteapp': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        
+        'notifications': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        
+        # Root logger
+        '': {
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',
+        },
+    },
+}
+
+
 AUTH_USER_MODEL = "accounts.CustomUser"
 
 ROOT_URLCONF = 'online_poll.urls'
@@ -87,7 +252,6 @@ WSGI_APPLICATION = 'online_poll.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
@@ -109,7 +273,6 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -228,35 +391,92 @@ CACHE_TTL = {
     'campaigns': 60 * 15,  # 15 minutes
 }
 
-# Celery Configuration
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
-CELERY_RESULT_BACKEND = 'rpc://'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+# # Celery Configuration
+# CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+# CELERY_RESULT_BACKEND = 'rpc://'
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_TIMEZONE = 'UTC'
+# CELERY_TASK_TRACK_STARTED = True
+# CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 
 
 # Celery Production Settings 
 
-# # Broker and Backend Configuration
-# CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'amqp://guest:guest@localhost:5672//')
-# CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'django-db')
+# Broker and Result Backend
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'amqp://guest:guest@localhost:5672//')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'django-db')  # Changed from rpc:// for better persistence
 
-# # Security Settings
-# CELERY_TASK_ALWAYS_EAGER = False  # Set to True only for testing (runs tasks synchronously)
-# CELERY_TASK_EAGER_PROPAGATES = True  # Propagate exceptions in eager mode
+# Serialization
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+CELERY_ENABLE_UTC = True
 
-# # Performance Optimization
-# CELERY_WORKER_PREFETCH_MULTIPLIER = 4  # How many tasks a worker prefetches
-# CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000  # Restart worker after this many tasks (prevents memory leaks)
+# Task Execution
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes hard limit
+CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes soft limit (sends signal)
+CELERY_TASK_ACKS_LATE = True  # Acknowledge task after execution (safer)
+CELERY_TASK_REJECT_ON_WORKER_LOST = True  # Re-queue if worker crashes
 
-# # Task Execution Settings
-# CELERY_TASK_ACKS_LATE = True  # Acknowledge task after execution (safer for task recovery)
-# CELERY_WORKER_SEND_TASK_EVENTS = True  # Enable task events for monitoring
+# Worker Configuration
+CELERY_WORKER_PREFETCH_MULTIPLIER = int(os.getenv('CELERY_WORKER_PREFETCH_MULTIPLIER', '4'))
+CELERY_WORKER_MAX_TASKS_PER_CHILD = int(os.getenv('CELERY_WORKER_MAX_TASKS_PER_CHILD', '1000'))
+CELERY_WORKER_DISABLE_RATE_LIMITS = False
 
-# # Additional Production Settings (optional but recommended)
-# CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True  # Retry connection on startup
-# CELERY_BROKER_CONNECTION_MAX_RETRIES = 10  # Max retries for broker connection
+# Result Backend Settings (if using django-db)
+CELERY_RESULT_EXTENDED = True  # Store additional task metadata
+CELERY_RESULT_EXPIRES = 60 * 60 * 24  # Results expire after 24 hours
+
+# Beat Scheduler (for periodic tasks)
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+# Monitoring and Events
+CELERY_SEND_TASK_SENT_EVENT = True
+CELERY_WORKER_SEND_TASK_EVENTS = True
+CELERY_TRACK_STARTED = True
+
+# Error Handling
+CELERY_TASK_ALWAYS_EAGER = os.getenv('CELERY_TASK_ALWAYS_EAGER', 'False').lower() == 'true'  # For testing
+CELERY_TASK_EAGER_PROPAGATES = True  # Propagate exceptions in eager mode
+
+# Broker Connection Settings
+CELERY_BROKER_CONNECTION_RETRY = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 10
+
+# Security (Production)
+CELERY_TASK_IGNORE_RESULT = False  # Set to True if you don't need task results
+CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
+
+# Email task settings (specific to your project)
+CELERY_EMAIL_TASK_CONFIG = {
+    'max_retries': 3,
+    'default_retry_delay': 300,  # 5 minutes
+}
+
+# Rate Limiting (optional - for specific tasks)
+CELERY_TASK_ANNOTATIONS = {
+    'accounts.tasks.send_verification_email_task': {
+        'rate_limit': '100/m',  # 100 per minute
+        'time_limit': 300,  # 5 minutes
+    },
+    'accounts.tasks.send_password_reset_email_task': {
+        'rate_limit': '100/m',
+        'time_limit': 300,
+    },
+}
+
+
+# Email configuration for error notifications
+ADMINS = [
+    ('Admin', email) for email in os.getenv('ADMINS', '').split(',') if email
+]
+
+# Adjust log level based on environment
+if not DEBUG:
+    LOGGING['loggers']['django']['level'] = 'WARNING'
+    LOGGING['loggers']['']['level'] = 'WARNING'

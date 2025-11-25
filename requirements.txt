@@ -34,6 +34,7 @@ python-crontab==3.3.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8
 python-dotenv==1.2.1
+python-json-logger==4.0.0
 PyYAML==6.0.3
 redis==4.6.0
 referencing==0.37.0

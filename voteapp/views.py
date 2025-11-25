@@ -15,7 +15,9 @@ from .serializers import (
 )
 from .pagination import StandardResultsSetPagination, LargeResultsSetPagination
 from .cache_utils import cache_response, invalidate_cache_pattern
+import logging
 
+logger = logging.getLogger('voteapp')
 
 class PollListCreateView(generics.ListCreateAPIView):
     queryset = Poll.objects.select_related('category', 'campaign', 'created_by').prefetch_related('options').all().order_by("-created_at")
@@ -37,9 +39,13 @@ class PollListCreateView(generics.ListCreateAPIView):
         return super().get(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
-        # Invalidate polls list cache after creation
-        invalidate_cache_pattern('polls')
+        try:
+            poll = serializer.save(created_by=self.request.user)
+            logger.info(f"Poll created: {poll.title} by user {self.request.user.username}")
+            invalidate_cache_pattern('polls')
+        except Exception as e:
+            logger.error(f"Error creating poll: {str(e)}", exc_info=True)
+            raise
 
 
 class PollDetailView(generics.RetrieveAPIView):
@@ -76,12 +82,18 @@ class VoteCreateView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     def perform_create(self, serializer):
-        vote = serializer.save()
-        # Invalidate related caches
-        poll_id = vote.poll_option.poll.id
-        cache.delete(f"poll_detail_{poll_id}")
-        cache.delete(f"poll_results_{poll_id}")
-        invalidate_cache_pattern(f'polls')
+        try:
+            vote = serializer.save()
+            poll_id = vote.poll_option.poll.id
+            logger.info(f"Vote recorded for poll {poll_id}")
+            
+            # Invalidate caches
+            cache.delete(f"poll_detail_{poll_id}")
+            cache.delete(f"poll_results_{poll_id}")
+            invalidate_cache_pattern(f'polls')
+        except Exception as e:
+            logger.error(f"Error recording vote: {str(e)}", exc_info=True)
+            raise
 
 
 class PollResultsView(APIView):

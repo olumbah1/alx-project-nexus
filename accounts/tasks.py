@@ -14,10 +14,15 @@ token_generator = PasswordResetTokenGenerator()
 @shared_task(
     bind=True,
     autoretry_for=(Exception,),
-    retry_kwargs={'max_retries': 3, 'countdown': 5},
+    retry_kwargs={
+        'max_retries': settings.CELERY_EMAIL_TASK_CONFIG.get('max_retries', 3),
+        'countdown': settings.CELERY_EMAIL_TASK_CONFIG.get('default_retry_delay', 300)
+    },
     retry_backoff=True,
     retry_backoff_max=600,
-    retry_jitter=True
+    retry_jitter=True,
+    soft_time_limit=300,  # 5 minutes soft limit
+    time_limit=360,  # 6 minutes hard limit
 )
 def send_verification_email_task(self, user_id):
     """
@@ -63,17 +68,22 @@ def send_verification_email_task(self, user_id):
         logger.error(f"User with id {user_id} does not exist")
         raise
     except Exception as e:
-        logger.error(f"Failed to send verification email to user {user_id}: {str(e)}")
+        logger.error(f"Failed to send verification email to user {user_id}: {str(e)}", exc_info=True)
         raise self.retry(exc=e)
 
 
 @shared_task(
     bind=True,
     autoretry_for=(Exception,),
-    retry_kwargs={'max_retries': 3, 'countdown': 5},
+    retry_kwargs={
+        'max_retries': settings.CELERY_EMAIL_TASK_CONFIG.get('max_retries', 3),
+        'countdown': settings.CELERY_EMAIL_TASK_CONFIG.get('default_retry_delay', 300)
+    },
     retry_backoff=True,
     retry_backoff_max=600,
-    retry_jitter=True
+    retry_jitter=True,
+    soft_time_limit=300,
+    time_limit=360,
 )
 def send_password_reset_email_task(self, user_id):
     """
@@ -125,5 +135,5 @@ def send_password_reset_email_task(self, user_id):
         logger.error(f"User with id {user_id} does not exist")
         raise
     except Exception as e:
-        logger.error(f"Failed to send password reset email to user {user_id}: {str(e)}")
+        logger.error(f"Failed to send password reset email to user {user_id}: {str(e)}", exc_info=True)
         raise self.retry(exc=e)
