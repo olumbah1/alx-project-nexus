@@ -207,16 +207,17 @@ FRONTEND_PASSWORD_RESET_URL = os.getenv('FRONTEND_PASSWORD_RESET_URL', 'http://l
 
 # Cache Configuration
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-        'KEY_PREFIX': 'online_poll',
-        'TIMEOUT': 300,  # 5 minutes default
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",    # django-redis backend
+        "LOCATION": "redis://localhost:6379/1",        # adjust host/db
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            # "PASSWORD": env("REDIS_PASSWORD", None),  # if you use password
+            # "SOCKET_CONNECT_TIMEOUT": 5,
+        }
     }
 }
+
 
 # Cache time settings
 CACHE_TTL = {

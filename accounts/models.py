@@ -9,6 +9,7 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True, null=False, blank=False)
+    notification_enabled = models.BooleanField(default=True)
     username = None
     
     is_verified = models.BooleanField(default=False)

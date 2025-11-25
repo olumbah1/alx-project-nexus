@@ -24,6 +24,20 @@ Compute vote counts and option percentages efficiently using DB aggregation. Pro
 Allow users to comment on polls to foster discussion (optional, non-blocking to voting).
 
 
+# Tech stack
+
+Framework: Django 4.2
+API: Django REST Framework
+Database: PostgreSQL
+API docs: drf-spectacular (Swagger / OpenAPI)
+CORS: django-cors-headers
+Task queue / background jobs: Celery (RabbitMQ as broker)
+Cache / real-time channel layer: Redis (recommended)
+Message broker: RabbitMQ (if you prefer it for complex routing)
+Containerization: Docker + docker-compose
+CI / Deployment: your choice (GitHub Actions / GitLab CI / etc.)
+
+
 # Features
 
 Campaign management with scheduling (start/end) and status flags
@@ -57,7 +71,9 @@ POST /api/token/refresh/
 
 POST /api/auth/forgot-password/
 
-POST /api/profile/
+PATCH /api/profile/
+
+PUT /api/profile/
 
 POST /api/profile/change-password
 
@@ -86,7 +102,6 @@ POST /api/p/votes/ — cast a vote (auth or anonymous depending on settings)
 GET  /api/notifications/ — user notifications (if enabled)
 
 
-
 # Data model highlights
 
 CustomUser — UUID primary key user record
@@ -102,10 +117,6 @@ PollOption — choice tied to a poll; stores vote_count for quick reads
 Vote — recorded vote (voter_user or voter_ip) with uniqueness constraints
 
 Comment — user comments on polls
-
-
-# from voteapp.models import Category, Campaign, Poll, PollOption, Vote, Comment
-# create objects as needed using timezone.now() and uuid.uuid4()
 
 
 # Security & integrity considerations
@@ -127,16 +138,17 @@ Environment: store secrets in .env or environment variables via django-environ.
 
 CORS: configure django-cors-headers for frontend domains.
 
-Installation
+# Installation
 # create venv
-python -m venv venv
-source venv/bin/activate   # or venv\Scripts\activate on Windows
+python -m venv env
+source env/bin/activate   # or env\Scripts\activate on Windows
 pip install -r requirements.txt
 
 # set env vars (or create .env)
-# SECRET_KEY, DATABASE_URL, DEBUG, etc.
+# SECRET_KEY, DATABASE_URL, DEBUG, EMAIL, CELERY etc.
 
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
+
 

@@ -13,7 +13,7 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "first_name", "last_name", "email"]
+        fields = ["id", "first_name", "last_name", "email", "notification_enabled"]
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -166,5 +166,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "first_name", "last_name", "email", "notifications_enabled"]
+        fields = ["id", "first_name", "last_name", "email"]
         read_only_fields = ["id", "email"]
+
+
+class NotificationToggleSerializer(serializers.Serializer):
+    notification_enabled = serializers.BooleanField()

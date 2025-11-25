@@ -11,7 +11,12 @@ class NotificationListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Notification.objects.filter(recipient=self.request.user).order_by("-created_at")
+        qs = Notification.objects.filter(recipient=self.request.user).order_by("-created_at")
+        if not getattr(self.request.user, "notification_enabled", True):
+        # return empty or return only system-critical notifications (if you mark them)
+            return qs.none()
+        return qs
+    
 
 class UnreadCountView(APIView):
     permission_classes = [permissions.IsAuthenticated]

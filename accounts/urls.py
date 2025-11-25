@@ -2,7 +2,8 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (SignupAPIView, MyTokenObtainPairView, LogoutAPIView,
                     ResetPasswordAPIView, ChangePasswordView, ProfileView, 
-                    ForgotPasswordAPIView, VerifyEmailAPIView, ResendVerificationAPIView)
+                    ForgotPasswordAPIView, VerifyEmailAPIView, ResendVerificationAPIView,
+                    ToggleNotificationPreferenceView)
 
 
 urlpatterns = [
@@ -18,5 +19,6 @@ urlpatterns = [
 
     path("profile/", ProfileView.as_view(), name="profile"),
     path("profile/change-password/", ChangePasswordView.as_view(), name="change-password"),
+    path("me/notification/", ToggleNotificationPreferenceView.as_view(), name="toggle-notification"),
 ]
 

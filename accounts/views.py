@@ -10,7 +10,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from .serializers import (
     SignUpSerializer, ForgotPasswordSerializer, ResetPasswordSerializer, 
-    LogoutSerializer, ProfileSerializer, ChangePasswordSerializer, MyTokenObtainPairSerializer
+    LogoutSerializer, ProfileSerializer, ChangePasswordSerializer, 
+    MyTokenObtainPairSerializer, NotificationToggleSerializer
 )
 from .utils import send_password_reset_email, send_verification_email 
 from rest_framework.views import APIView
@@ -180,4 +181,14 @@ class VerifyEmailAPIView(APIView):
         user.is_verified = True
         user.save()
         return Response({'detail': 'Email verified successfully.'})
-    
+
+
+class ToggleNotificationPreferenceView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request):
+        serializer = NotificationToggleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.notification_enabled = serializer.validated_data["notification_enabled"]
+        request.user.save(update_fields=["notification_enabled"])
+        return Response({"notification_enabled": request.user.notification_enabled}, status=status.HTTP_200_OK)
