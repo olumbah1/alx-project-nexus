@@ -1,36 +1,28 @@
-# Use Python 3.11 slim image
+# Dockerfile
 FROM python:3.11-slim
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set work directory
 WORKDIR /app
 
-# Install system dependencies
+# Install build tools (kept minimal)
 RUN apt-get update && apt-get install -y \
-    postgresql-client \
     gcc \
-    python3-dev \
-    musl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 COPY requirements.txt /app/
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Fix Windows permission issue
-RUN chmod +x /app/wait-for-db.sh
-
-# Copy project
+# Copy project files
 COPY . /app/
 
-# Create directory for static files
+# Ensure static dir exists
 RUN mkdir -p /app/staticfiles
 
-# Expose port
 EXPOSE 8000
 
-# Run migrations and start server (will be overridden by docker-compose)
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Run migrations then start gunicorn
+CMD ["bash", "-lc", "python manage.py migrate --noinput && gunicorn online_poll.wsgi:application --bind 0.0.0.0:8000 --workers 3"]
