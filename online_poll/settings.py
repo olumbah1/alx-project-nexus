@@ -477,3 +477,6 @@ ADMINS = [
 if not DEBUG:
     LOGGING['loggers']['django']['level'] = 'WARNING'
     LOGGING['loggers']['']['level'] = 'WARNING'
+
+
+CELERY_TASK_ALWAYS_EAGER = os.getenv('CELERY_TASK_ALWAYS_EAGER', 'True') == 'True'
