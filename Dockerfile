@@ -20,6 +20,9 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
+# Fix Windows permission issue
+RUN chmod +x /app/wait-for-db.sh
+
 # Copy project
 COPY . /app/
 
