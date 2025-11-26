@@ -352,9 +352,6 @@ SPECTACULAR_SETTINGS = {
 }
 
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "noreply@gmail.com"
-
 # # Email Configuration
 
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
