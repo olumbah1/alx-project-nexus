@@ -5308,3 +5308,4 @@
 [DEBUG] 2025-11-27 09:14:56 django.utils.autoreload - File C:\Users\USER\alx-project-nexus\env\Lib\site-packages\django_celery_beat\migrations\0019_alter_periodictasks_options.py first seen with mtime 1763936960.1100762
 [DEBUG] 2025-11-27 09:14:56 django.utils.autoreload - File C:\Users\USER\alx-project-nexus\notifications\migrations\0001_initial.py first seen with mtime 1763925971.3150642
 [DEBUG] 2025-11-27 09:14:56 django.utils.autoreload - File C:\Users\USER\alx-project-nexus\env\Lib\site-packages\django_celery_beat\migrations\0016_alter_crontabschedule_timezone.py first seen with mtime 1763936960.0861516
+[INFO] 2025-11-27 16:08:14 django.utils.autoreload - Watching for file changes with StatReloader

@@ -63,3 +63,5 @@ envVarGroups:
         value: noreply@yourapp.com
       - key: CELERY_TASK_ALWAYS_EAGER
         value: False
+      - key: DATABASE_URL    
+        sync: false
