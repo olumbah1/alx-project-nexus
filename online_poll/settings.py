@@ -91,24 +91,23 @@ TEMPLATES = [
 WSGI_APPLICATION = 'online_poll.wsgi.application'
 
 # ==================== DATABASE ====================
-
-DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
-
-if DATABASE_URL:
-    # Optional: use dj-database-url if you already have it in requirements
-    try:
-        import dj_database_url
-        DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
-    except Exception:
-        # minimal parse if dj_database_url isn't available
-        raise RuntimeError("DATABASE_URL set but dj_database_url not installed")
-else:
-    # SQLite fallback (file stored in project root)
+if DEBUG:
+    # Development - SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': str(BASE_DIR / 'db.sqlite3'),
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
+    }
+else:
+    # Production - PostgreSQL
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
 
 # ==================== PASSWORD VALIDATION ====================

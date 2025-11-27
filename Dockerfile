@@ -5,9 +5,10 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install dependencies
+# Install system dependencies INCLUDING PostgreSQL dev libraries
 RUN apt-get update && apt-get install -y \
     gcc \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
@@ -21,10 +22,10 @@ COPY . /app/
 # Create static directory
 RUN mkdir -p /app/staticfiles
 
-# Collect static files
-RUN python manage.py collectstatic --noinput || true
+# Collect static files (skip if DB is needed)
+# RUN python manage.py collectstatic --noinput || true
 
 EXPOSE 8000
 
-# Default command (can be overridden)
+# Default command
 CMD ["gunicorn", "online_poll.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120"]
