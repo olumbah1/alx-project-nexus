@@ -94,14 +94,16 @@ WSGI_APPLICATION = 'online_poll.wsgi.application'
 
 # Development: SQLite
 
-if DEBUG:
-    # Development - SQLite
-    DATABASES = {
+# if DEBUG:
+#     # Development - SQLite
+
+DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+    
 # else:
 #     # Production - PostgreSQL
 #     import dj_database_url
