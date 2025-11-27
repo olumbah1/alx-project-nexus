@@ -1,0 +1,65 @@
+services:
+  # Web Service (Django)
+  - type: web
+    name: online-poll-web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerCommand: bash -c "python manage.py migrate --noinput && gunicorn online_poll.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - fromGroup: online-poll-env
+
+  # Celery Worker Service (REQUIRED!)
+  - type: worker
+    name: online-poll-celery
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerCommand: celery -A online_poll worker --loglevel=info --concurrency=2
+    envVars:
+      - fromGroup: online-poll-env
+
+  # Celery Beat (Optional - for scheduled tasks)
+  - type: worker
+    name: online-poll-beat
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerCommand: celery -A online_poll beat --loglevel=info
+    envVars:
+      - fromGroup: online-poll-env
+
+# Environment variable group
+envVarGroups:
+  - name: online-poll-env
+    envVars:
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: CELERY_BROKER_URL
+        sync: false
+      - key: CELERY_RESULT_BACKEND
+        sync: false
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USE_TLS
+        value: True
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        value: noreply@yourapp.com
+      - key: CELERY_TASK_ALWAYS_EAGER
+        value: False

@@ -192,3 +192,36 @@ class ToggleNotificationPreferenceView(APIView):
         request.user.notification_enabled = serializer.validated_data["notification_enabled"]
         request.user.save(update_fields=["notification_enabled"])
         return Response({"notification_enabled": request.user.notification_enabled}, status=status.HTTP_200_OK)
+    
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from celery import current_app
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def celery_health(request):
+    """Check Celery worker status"""
+    try:
+        inspect = current_app.control.inspect()
+        stats = inspect.stats()
+        
+        if stats:
+            return Response({
+                'status': 'healthy',
+                'workers': list(stats.keys()),
+                'message': 'Celery workers are running'
+            })
+        else:
+            return Response({
+                'status': 'unhealthy',
+                'workers': [],
+                'message': 'No Celery workers found!'
+            }, status=503)
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)

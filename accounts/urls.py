@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (SignupAPIView, MyTokenObtainPairView, LogoutAPIView,
                     ResetPasswordAPIView, ChangePasswordView, ProfileView, 
                     ForgotPasswordAPIView, VerifyEmailAPIView, ResendVerificationAPIView,
-                    ToggleNotificationPreferenceView)
+                    ToggleNotificationPreferenceView, celery_health)
 
 
 urlpatterns = [
@@ -20,5 +20,6 @@ urlpatterns = [
     path("profile/", ProfileView.as_view(), name="profile"),
     path("profile/change-password/", ChangePasswordView.as_view(), name="change-password"),
     path("me/notification/", ToggleNotificationPreferenceView.as_view(), name="toggle-notification"),
+    path('celery-health/', celery_health, name='celery-health'),
 ]
 
