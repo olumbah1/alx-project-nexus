@@ -23,7 +23,8 @@ COPY . /app/
 RUN mkdir -p /app/staticfiles
 
 # Collect static files (skip if DB is needed)
-# RUN python manage.py collectstatic --noinput || true
+
+RUN python manage.py collectstatic --noinput 2>/dev/null || true
 
 EXPOSE 8000
 
