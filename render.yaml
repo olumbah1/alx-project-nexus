@@ -1,5 +1,11 @@
+databases:
+  - name: online-poll-redis
+    databaseName: online-poll-redis
+    plan: free
+    ipWhitelist: []
+
 services:
-  # Web Service (Django)
+  # Web Service
   - type: web
     name: online-poll-web
     runtime: docker
@@ -11,7 +17,7 @@ services:
         value: 3.11.0
       - fromGroup: online-poll-env
 
-  # Celery Worker Service (REQUIRED!)
+  # Celery Worker Service
   - type: worker
     name: online-poll-celery
     runtime: docker
@@ -21,7 +27,7 @@ services:
     envVars:
       - fromGroup: online-poll-env
 
-  # Celery Beat (Optional - for scheduled tasks)
+  # Celery Beat
   - type: worker
     name: online-poll-beat
     runtime: docker
@@ -31,7 +37,6 @@ services:
     envVars:
       - fromGroup: online-poll-env
 
-# Environment variable group
 envVarGroups:
   - name: online-poll-env
     envVars:
@@ -40,13 +45,19 @@ envVarGroups:
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        sync: false
+        value: alx-project-nexus-xnji.onrender.com
       - key: REDIS_URL
-        sync: false
+        fromDatabase:
+          name: online-poll-redis
+          property: connectionString
       - key: CELERY_BROKER_URL
-        sync: false
+        fromDatabase:
+          name: online-poll-redis
+          property: connectionString
       - key: CELERY_RESULT_BACKEND
-        sync: false
+        fromDatabase:
+          name: online-poll-redis
+          property: connectionString
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
       - key: EMAIL_HOST
@@ -56,12 +67,12 @@ envVarGroups:
       - key: EMAIL_USE_TLS
         value: True
       - key: EMAIL_HOST_USER
-        sync: false
+        value: adeoyeolumbah@gmail.com
       - key: EMAIL_HOST_PASSWORD
-        sync: false
+        value: zkxbpchfmfwfwwty
       - key: DEFAULT_FROM_EMAIL
         value: noreply@yourapp.com
-      - key: CELERY_TASK_ALWAYS_EAGER
-        value: False
-      - key: DATABASE_URL    
-        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: polling_system_db
+          property: connectionString

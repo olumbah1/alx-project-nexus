@@ -1,4 +1,3 @@
-# online_poll/celery.py
 import os
 from celery import Celery
 
@@ -11,9 +10,14 @@ app = Celery('online_poll')
 # Load configuration from Django settings with CELERY namespace
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Override broker URL to ensure it's set correctly
-app.conf.broker_url = 'amqp://guest:guest@localhost:5672//'
-app.conf.result_backend = 'rpc://'
+# Use environment variables for broker and result backend
+broker_url = os.getenv('CELERY_BROKER_URL')
+result_backend = os.getenv('CELERY_RESULT_BACKEND')
+
+if broker_url:
+    app.conf.broker_url = broker_url
+if result_backend:
+    app.conf.result_backend = result_backend
 
 # Auto-discover tasks in all installed apps
 app.autodiscover_tasks()
