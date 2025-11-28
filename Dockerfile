@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install system dependencies INCLUDING PostgreSQL dev libraries
+# Install system dependencies (libpq for psycopg)
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
@@ -19,14 +19,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . /app/
 
-# Create static directory
+# Create static dir (WhiteNoise will serve from here)
 RUN mkdir -p /app/staticfiles
 
-# Collect static files (skip if DB is needed)
+# Do NOT run migrations here in build; run them during start instead.
+# Collect static now so the build contains static files (optional)
+RUN python manage.py collectstatic --noinput || true
 
-RUN python manage.py collectstatic --noinput 2>/dev/null || true
-
+# Expose default container port (informational only)
 EXPOSE 8000
 
-# Default command
-CMD ["gunicorn", "online_poll.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120"]
+# Use CMD that a render dockerCommand can override.
+# NOTE: This binds to $PORT when dockerCommand uses it or when Render runs the command.
+CMD ["bash", "-lc", "gunicorn online_poll.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"]
