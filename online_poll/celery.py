@@ -19,6 +19,10 @@ if broker_url:
 if result_backend:
     app.conf.result_backend = result_backend
 
+# RabbitMQ specific settings
+app.conf.broker_connection_retry_on_startup = True
+app.conf.broker_connection_retry = True
+
 # Auto-discover tasks in all installed apps
 app.autodiscover_tasks()
 
