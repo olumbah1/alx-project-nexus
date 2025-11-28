@@ -45,7 +45,7 @@ envVarGroups:
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        value: alx-project-nexus-xnji.onrender.com
+        value: your-render-domain.onrender.com
       - key: CELERY_BROKER_URL
         value: redis://red-d4k46ckhg0os73ag25t0:6379/0
       - key: CELERY_RESULT_BACKEND
@@ -68,3 +68,74 @@ envVarGroups:
         fromDatabase:
           name: polling_system_db
           property: connectionString
+
+# databases:
+#   - name: online-poll-redis
+#     databaseName: online-poll-redis
+#     plan: free
+#     ipWhitelist: []
+
+# services:
+#   # Web Service
+#   - type: web
+#     name: online-poll-web
+#     runtime: docker
+#     plan: free
+#     dockerfilePath: ./Dockerfile
+#     dockerCommand: bash -c "python manage.py migrate --noinput && gunicorn online_poll.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+#     envVars:
+#       - key: PYTHON_VERSION
+#         value: 3.11.0
+#       - fromGroup: online-poll-env
+
+#   # Celery Worker Service
+#   - type: worker
+#     name: online-poll-celery
+#     runtime: docker
+#     plan: free
+#     dockerfilePath: ./Dockerfile
+#     dockerCommand: celery -A online_poll worker --loglevel=info --concurrency=2
+#     envVars:
+#       - fromGroup: online-poll-env
+
+#   # Celery Beat
+#   - type: worker
+#     name: online-poll-beat
+#     runtime: docker
+#     plan: free
+#     dockerfilePath: ./Dockerfile
+#     dockerCommand: celery -A online_poll beat --loglevel=info
+#     envVars:
+#       - fromGroup: online-poll-env
+
+# envVarGroups:
+#   - name: online-poll-env
+#     envVars:
+#       - key: DEBUG
+#         value: "False"
+#       - key: SECRET_KEY
+#         generateValue: true
+#       - key: ALLOWED_HOSTS
+#         value: alx-project-nexus-xnji.onrender.com
+#       - key: CELERY_BROKER_URL
+#         value: redis://red-d4k46ckhg0os73ag25t0:6379/0
+#       - key: CELERY_RESULT_BACKEND
+#         value: redis://red-d4k46ckhg0os73ag25t0:6379/0
+#       - key: EMAIL_BACKEND
+#         value: django.core.mail.backends.smtp.EmailBackend
+#       - key: EMAIL_HOST
+#         value: smtp.gmail.com
+#       - key: EMAIL_PORT
+#         value: "587"
+#       - key: EMAIL_USE_TLS
+#         value: "True"
+#       - key: EMAIL_HOST_USER
+#         value: adeoyeolumbah@gmail.com
+#       - key: EMAIL_HOST_PASSWORD
+#         value: zkxbpchfmfwfwwty
+#       - key: DEFAULT_FROM_EMAIL
+#         value: noreply@yourapp.com
+#       - key: DATABASE_URL
+#         fromDatabase:
+#           name: polling_system_db
+#           property: connectionString
