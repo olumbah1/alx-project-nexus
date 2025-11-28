@@ -41,31 +41,23 @@ envVarGroups:
   - name: online-poll-env
     envVars:
       - key: DEBUG
-        value: False
+        value: "False"
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
         value: alx-project-nexus-xnji.onrender.com
-      - key: REDIS_URL
-        fromDatabase:
-          name: online-poll-redis
-          property: connectionString
       - key: CELERY_BROKER_URL
-        fromDatabase:
-          name: online-poll-redis
-          property: connectionString
+        value: redis://red-d4k46ckhg0os73ag25t0:6379/0
       - key: CELERY_RESULT_BACKEND
-        fromDatabase:
-          name: online-poll-redis
-          property: connectionString
+        value: redis://red-d4k46ckhg0os73ag25t0:6379/0
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
       - key: EMAIL_HOST
         value: smtp.gmail.com
       - key: EMAIL_PORT
-        value: 587
+        value: "587"
       - key: EMAIL_USE_TLS
-        value: True
+        value: "True"
       - key: EMAIL_HOST_USER
         value: adeoyeolumbah@gmail.com
       - key: EMAIL_HOST_PASSWORD
