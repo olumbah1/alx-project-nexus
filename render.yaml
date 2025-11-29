@@ -1,40 +1,39 @@
-# (Only include the below; keep your original file header if present)
-
-# If you want Render to create a Postgres DB, include it here.
 databases:
-  - name: polling_system_db           # the name used later for fromDatabase
-    databaseName: polling_system_db  # friendly name
+  - name: online-poll-redis
+    databaseName: online-poll-redis
     plan: free
     ipWhitelist: []
 
 services:
+  # Web Service
   - type: web
     name: online-poll-web
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
-    # start: migrate -> collectstatic -> gunicorn (binds to $PORT)
-    dockerCommand: bash -lc "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn online_poll.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+    dockerCommand: bash -c "python manage.py migrate --noinput && gunicorn online_poll.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
       - fromGroup: online-poll-env
 
+  # Celery Worker Service
   - type: worker
     name: online-poll-celery
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
-    dockerCommand: bash -lc "celery -A online_poll worker --loglevel=info --concurrency=2"
+    dockerCommand: celery -A online_poll worker --loglevel=info --concurrency=2
     envVars:
       - fromGroup: online-poll-env
 
+  # Celery Beat
   - type: worker
     name: online-poll-beat
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
-    dockerCommand: bash -lc "celery -A online_poll beat --loglevel=info"
+    dockerCommand: celery -A online_poll beat --loglevel=info
     envVars:
       - fromGroup: online-poll-env
 
@@ -46,14 +45,15 @@ envVarGroups:
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        value: online-poll-web.onrender.com
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: polling_system_db
+          property: connectionString
       - key: CELERY_BROKER_URL
-        # set this in the Render UI to the Redis connection string (example shown)
-        value: redis://default:[REDIS_PASSWORD]@red-d4k46ckhg0os73ag25t0:6379/0
+        value: redis://red-d4k46ckhg0os73ag25t0:6379/0
       - key: CELERY_RESULT_BACKEND
-        value: redis://default:[REDIS_PASSWORD]@red-d4k46ckhg0os73ag25t0:6379/0
-      - key: REDIS_URL
-        value: redis://default:[REDIS_PASSWORD]@red-d4k46ckhg0os73ag25t0:6379/0
+        value: redis://red-d4k46ckhg0os73ag25t0:6379/0
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
       - key: EMAIL_HOST
@@ -62,13 +62,10 @@ envVarGroups:
         value: "587"
       - key: EMAIL_USE_TLS
         value: "True"
-      # DO NOT store email password or other secrets here in plaintext in repo;
-      # instead set them via the Render UI (see steps below).
       - key: EMAIL_HOST_USER
-        value: adeoyeolumbah@gmail.com
+        sync: false
       - key: EMAIL_HOST_PASSWORD
-        # leave this entry out of the YAML; set it in Render UI (or mark sensitive)
-        value: ""
+        sync: false
       - key: DEFAULT_FROM_EMAIL
         value: noreply@yourapp.com
       - key: DATABASE_URL
