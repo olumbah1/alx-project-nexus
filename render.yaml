@@ -46,7 +46,7 @@ envVarGroups:
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        value: alx-project-nexus-xnji.onrender.com
+        value: online-poll-web.onrender.com
       - key: CELERY_BROKER_URL
         # set this in the Render UI to the Redis connection string (example shown)
         value: redis://default:[REDIS_PASSWORD]@red-d4k46ckhg0os73ag25t0:6379/0
